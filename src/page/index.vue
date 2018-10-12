@@ -24,6 +24,15 @@ export default {
         window.socket.on("new message", content => {
             this.content = content;
         });
+        window.socket.on("new files", ret => {
+            if (ret.length) {
+                utils.hint(
+                    ret.length == 1
+                        ? `【新文件】${ret[0].file.name}`
+                        : `上传了${ret.length}个新文件.`
+                );
+            }
+        });
     },
     methods: {
         copy() {
