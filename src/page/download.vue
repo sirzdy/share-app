@@ -6,6 +6,7 @@
 </template>
 <script>
 import axios from "axios";
+import utils from "../assets/js/utils.js";
 export default {
     data() {
         return {
@@ -26,6 +27,16 @@ export default {
             .catch(function(error) {
                 alert(error);
             });
+        window.socket.on("new files", ret => {
+            if (ret.length) {
+                this.refresh();
+                utils.hint(
+                    ret.length == 1
+                        ? `【新文件】${ret[0].file.name}`
+                        : `上传了${ret.length}个新文件.`
+                );
+            }
+        });
     },
     methods: {
         refresh() {
