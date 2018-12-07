@@ -21,7 +21,7 @@
             <div v-for="(item,idx) in texts" class="texts" :key="idx">
                 <div class="text_date">{{ item.date }}</div>
                 <div class="text" v-for="(r,index) in item.res" :key="index">
-                    <div class="text_con">{{r[1]}}</div>
+                    <div class="text_con" v-html="getHtml(r[1])"></div>
                     <div class="text_fn">
                         <div class="text_fn_time">{{r[0]|getTime}}</div>
                         <img class="text_fn_copy" :data-clipboard-text="r[1]" src="../assets/image/copy.png" alt="" @click="copy()">
@@ -69,9 +69,19 @@ export default {
                 .getSeconds()
                 .toString()
                 .padStart(2, "0")}`;
-        }
+        },
+        
     },
     methods: {
+        getHtml: function(str) {
+            let arr = str.split(' ');
+            arr.forEach((x,i)=>{
+                if(x.match('//')){
+                    arr[i]=`<a href="${x}">${x}</a>`
+                }
+            })
+            return arr.join(' ');
+        },
         getDate(date) {
             return `${date
                 .getFullYear()
