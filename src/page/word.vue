@@ -114,7 +114,7 @@ export default {
             let arr = str.split(' ');
             arr.forEach((x,i)=>{
                 if(x.match('//')){
-                    arr[i]=`<a href="${x}">${x}</a>`
+                    arr[i]=`<a href="${encodeURI(x)}">${x}</a>`
                 }
             })
             return arr.join(' ');
@@ -228,7 +228,7 @@ export default {
 }
 .dates {
     border-left: 2px solid rgba(0, 0, 0, 0.1);
-    flex: 1;
+    flex: 5;
     width: 100%;
     height: 100%;
     display: flex;
@@ -245,11 +245,11 @@ export default {
     font-size: 14px;
 }
 .btn {
-    width: 100px;
+    flex: 3;
     border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 .col_btn{
-    width: 200px;
+    flex: 6;
 }
 
 .body {
@@ -261,7 +261,7 @@ export default {
 
 .content {
     width: 100%;
-    flex: 1;
+    flex: 11;
     height: 100%;
     resize: none;
     border: none;
