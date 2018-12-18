@@ -1,6 +1,7 @@
 <template>
     <section class="container">
         <section class="fn">
+            <div class="col_btn" @click="getCollections">我的收藏</div>
             <div class="dates">
                 <input class="date" type="date" ref="startDate">
                 <input class="date" type="date" ref="endDate">
@@ -11,20 +12,33 @@
             <div v-if="newTexts && newTexts.length" class="texts">
                 <div class="text_date">新增</div>
                 <div class="text" v-for="(r,index) in newTexts" :key="index" ref="newTexts">
-                    <div class="text_con">{{r[1]}}</div>
+                    <div class="text_con"  v-html="getHtml(r[1])"></div>
                     <div class="text_fn">
                         <div class="text_fn_time">{{r[0]|getTime}}</div>
                         <img class="text_fn_copy" :data-clipboard-text="r[1]" src="../assets/image/copy.png" alt="" @click="copy(this)">
                     </div>
                 </div>
             </div>
-            <div v-for="(item,idx) in texts" class="texts" :key="idx">
-                <div class="text_date">{{ item.date }}</div>
-                <div class="text" v-for="(r,index) in item.res" :key="index">
-                    <div class="text_con" v-html="getHtml(r[1])"></div>
+            <div v-if="mode===0" class="texts">
+                <div class="text_date">{{collections.length?'我的收藏':'暂无收藏'}}</div>
+                <div class="text" v-for="(r,index) in collections" :key="index" ref="collections">
+                    <div class="text_title"  v-html="getHtml(r[2])"></div>
+                    <div class="text_con"  v-html="getHtml(r[1])"></div>
                     <div class="text_fn">
-                        <div class="text_fn_time">{{r[0]|getTime}}</div>
-                        <img class="text_fn_copy" :data-clipboard-text="r[1]" src="../assets/image/copy.png" alt="" @click="copy()">
+                        <div class="text_fn_time">{{r[0]|getFullTime}}</div>
+                        <img class="text_fn_copy" :data-clipboard-text="r[1]" src="../assets/image/copy.png" alt="" @click="copy(this)">
+                    </div>
+                </div>
+            </div>
+            <div v-else>
+                <div v-for="(item,idx) in texts" class="texts" :key="idx">
+                    <div class="text_date">{{ item.date }}</div>
+                    <div class="text" v-for="(r,index) in item.res" :key="index">
+                        <div class="text_con" v-html="getHtml(r[1])"></div>
+                        <div class="text_fn">
+                            <div class="text_fn_time">{{r[0]|getTime}}</div>
+                            <img class="text_fn_copy" :data-clipboard-text="r[1]" src="../assets/image/copy.png" alt="" @click="copy()">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -44,19 +58,42 @@ export default {
     data() {
         return {
             texts: [],
-            newTexts: []
+            collections: [],
+            newTexts: [],
+            mode: 0 //收藏 0 传输记录 1
         };
     },
     mounted() {
         this.$refs.startDate.value = this.getDate(new Date());
         this.$refs.endDate.value = this.getDate(new Date());
-        this.getTexts();
+        this.getCollections();
 
         window.socket.on("new message", content => {
             this.newTexts.unshift([Date.now(), content]);
         });
     },
     filters: {
+        getFullTime: function(date) {
+            date = new Date(Number(date));
+            return `${date
+                .getFullYear()
+                .toString()
+                .padStart(4, "0")}-${(date.getMonth() + 1)
+                .toString()
+                .padStart(2, "0")}-${date
+                .getDate()
+                .toString()
+                .padStart(2, "0")} ${date
+                .getHours()
+                .toString()
+                .padStart(2, "0")}:${date
+                .getMinutes()
+                .toString()
+                .padStart(2, "0")}:${date
+                .getSeconds()
+                .toString()
+                .padStart(2, "0")}`;
+        },
         getTime: function(date) {
             date = new Date(Number(date));
             return `${date
@@ -124,6 +161,7 @@ export default {
                 });
         },
         getTexts() {
+            this.mode = 1;
             let startDate = this.$refs.startDate.value;
             let endDate = this.$refs.endDate.value;
             axios
@@ -138,6 +176,19 @@ export default {
                     texts.forEach(x => x.res.sort((a, b) => b[0] - a[0]));
                     texts.sort((a, b) => (a.date > b.date ? -1 : 1));
                     this.texts = texts;
+                })
+                .catch(function(error) {
+                    alert(error);
+                });
+        },
+        getCollections(){
+            this.mode = 0;
+            axios
+                .get("/getCollections")
+                .then(response => {
+                    let collections = response.data.collections;
+                    collections.sort((a, b) => b[0] - a[0]);
+                    this.collections = collections;
                 })
                 .catch(function(error) {
                     alert(error);
@@ -176,6 +227,7 @@ export default {
     align-items: center;
 }
 .dates {
+    border-left: 2px solid rgba(0, 0, 0, 0.1);
     flex: 1;
     width: 100%;
     height: 100%;
@@ -195,6 +247,9 @@ export default {
 .btn {
     width: 100px;
     border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+.col_btn{
+    width: 200px;
 }
 
 .body {
@@ -250,6 +305,12 @@ export default {
     display: flex;
     flex-direction: column;
     margin-bottom: 5px;
+}
+.text_title {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 5px;
+    white-space: normal;
+    word-wrap: break-word;
 }
 .text_con {
     padding: 5px;
